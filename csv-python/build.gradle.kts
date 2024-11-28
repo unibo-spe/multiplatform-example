@@ -1,3 +1,6 @@
+import java.io.OutputStream
+
+
 tasks.create<Copy>("createCoreJar") {
     group = "Python"
     val shadowJar by project(":csv-core").tasks.getting(Jar::class)
@@ -8,19 +11,40 @@ tasks.create<Copy>("createCoreJar") {
     into(projectDir.resolve("jcsv/jvm"))
 }
 
-fun findExecutablePath(name: String, vararg otherNames: String): File? {
-    val names = listOf(name, *otherNames).flatMap { listOf(it, it + ".exe") }
+fun findExecutablePath(
+    name: String,
+    vararg otherNames: String,
+    test: (File) -> Boolean = { true }
+): File? {
+    val names = listOf(name, *otherNames).flatMap { listOf(it, "$it.exe") }
     return System.getenv("PATH")
         .split(File.pathSeparatorChar)
         .asSequence()
         .map { File(it) }
         .flatMap { path -> names.asSequence().map { path.resolve(it) } }
         .filter { it.exists() }
+        .filter(test)
         .firstOrNull()
 }
 
-val python = findExecutablePath("python3", "python")?.absolutePath
-    ?: error("Cannot find Python executable")
+val globalPython = findExecutablePath("python3", "python") { path ->
+   exec {
+       errorOutput = OutputStream.nullOutputStream()
+       standardOutput = OutputStream.nullOutputStream()
+       commandLine(path, "--version")
+   }.exitValue == 0
+}?.absolutePath
+
+val localPythonEnvRoot = projectDir.resolve("build").resolve("python")
+
+val localPython
+    get() = fileTree(localPythonEnvRoot) {
+        include("**/python")
+        include("**/python.exe")
+    }.firstOrNull()?.absolutePath
+
+val python
+    get() = localPython ?: globalPython ?: error("Python executable not found")
 
 fun pyTask(name: String, vararg args: String, conf: Exec.() -> Unit = {}) =
     tasks.create<Exec>(name) {
@@ -30,10 +54,22 @@ fun pyTask(name: String, vararg args: String, conf: Exec.() -> Unit = {}) =
         conf(this)
     }
 
-pyTask("restoreDeps", "-m", "pip", "install", "-r", "requirements.txt")
+pyTask("createVirtualEnv", "-m", "venv", localPythonEnvRoot.path) {
+    outputs.dir(localPythonEnvRoot)
+    doLast {
+        when (val path = localPython) {
+            null -> error("Virtual environment creation failed")
+            else -> println("Created local Python environment in $path")
+        }
+    }
+}
 
-pyTask("pythonTest", "-m", "unittest") {
-    dependsOn("restoreDeps")
+pyTask("restoreDependencies", "-m", "pip", "install", "-r", "requirements.txt") {
+    dependsOn("createVirtualEnv")
+}
+
+pyTask("pythonTest", "-m", "unittest", "-v") {
+    dependsOn("restoreDependencies")
     dependsOn("createCoreJar")
 }
 
@@ -48,6 +84,6 @@ tasks.create("check") {
 }
 
 exec {
-    println("$python --version")
-    commandLine(python, "--version")
+    println("$globalPython --version")
+    commandLine(globalPython, "--version")
 }
