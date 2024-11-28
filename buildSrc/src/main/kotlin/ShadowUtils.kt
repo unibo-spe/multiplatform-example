@@ -12,8 +12,8 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import java.io.File
 
 fun String.toPascalCase(separators: Set<Char> = setOf('_', '-')) =
-    split(*separators.toCharArray()).joinToString("") {
-        it.capitalized()
+    split(*separators.toCharArray()).joinToString("") { word ->
+        word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
     }
 
 private val Project.supportedPlatforms: List<String>
