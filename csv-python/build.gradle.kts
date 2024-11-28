@@ -1,3 +1,4 @@
+import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 
 
@@ -84,6 +85,6 @@ tasks.create("check") {
 }
 
 exec {
-    println("$globalPython --version")
-    commandLine(globalPython, "--version")
+    println("Using interpreter: $python")
+    commandLine(python, "--version")
 }
