@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ windows-2022, macos-12, ubuntu-22.04 ]
-        java-version: [11, 17, 19]
+        java-version: [11, 17, 21]
         jdk-dist:
           - adopt-hotspot
           - temurin
@@ -27,9 +27,9 @@ jobs:
           java-distribution: ${{ matrix.jdk-dist }}
           java-version: ${{ matrix.java-version }}
           build-command: |
-            ./gradlew jsMainClasses jsTestClasses --parallel || ./gradlew jsMainClasses jsTestClasses --parallel
+            ./gradlew classes
           check-command: |
-            ./gradlew jvmTest --parallel --continue || ./gradlew jvmTest --parallel --continue
+            ./gradlew jvmTest
           should-run-codecov: false
 
   test-js:
@@ -38,10 +38,10 @@ jobs:
       matrix:
         os: [ windows-2022, macos-12, ubuntu-22.04 ]
         node-version:
-          - 'latest-16'
           - 'latest-18'
-          - 'latest-19'
           - 'latest-20'
+          - 'latest-22'
+          - 'latest'
     runs-on: ${{ matrix.os }}
     env:
       ORG_GRADLE_PROJECT_nodeVersion: ${{ matrix.node-version }}
@@ -54,10 +54,9 @@ jobs:
       - uses: DanySK/build-check-deploy-gradle-action@3.5.12
         with:
           build-command: |
-            ./gradlew jsMainClasses jsTestClasses --parallel || ./gradlew jsMainClasses jsTestClasses --parallel
+            ./gradlew classes
           check-command: |
-            ./gradlew jsTest --parallel --continue || ./gradlew jsTest --parallel --continue
-          clean-command: ./gradlew cleanTest
+            ./gradlew jsTest
           should-run-codecov: false
 
   test-python:
@@ -82,6 +81,8 @@ jobs:
         uses: DanySK/action-checkout@0.2.22
       - uses: DanySK/build-check-deploy-gradle-action@3.5.12
         with:
+          build-command: |
+            ./gradlew createCoreJar restoreDependencies
           check-command: |
-            ./gradlew pythonTest --continue || ./gradlew pythonTest --continue
+            ./gradlew jsTest
           should-run-codecov: false

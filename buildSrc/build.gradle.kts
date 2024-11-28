@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     `kotlin-dsl`
     alias(libs.plugins.kotlin.jvm)
@@ -13,16 +15,16 @@ dependencies {
     implementation(libs.kotlin.gradlePlugin)
 }
 
-val targetJvm = libs.versions.jvm.get()
-val targetJava = JavaVersion.valueOf("VERSION_$targetJvm")
+val targetJvm = libs.versions.jvm
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = targetJvm
+kotlin {
+    compilerOptions {
+        allWarningsAsErrors = true
+        jvmTarget.set(targetJvm.map { JvmTarget.valueOf("JVM_$it") })
     }
 }
 
 java {
-    sourceCompatibility = targetJava
-    targetCompatibility = targetJava
+    sourceCompatibility = JavaVersion.valueOf("VERSION_${targetJvm.get()}")
+    targetCompatibility = sourceCompatibility
 }
