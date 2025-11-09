@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.1.0"
+kotlin = "2.1.21"
 jvm = "11"
 node = "16-latest"
 shadowJar = "8.0.0"
