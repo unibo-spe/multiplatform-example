@@ -5,7 +5,7 @@ node = "16-latest"
 shadowJar = "8.0.0"
 
 [plugins]
-gitSemVer = "org.danilopianini.git-sensitive-semantic-versioning:4.0.2"
+gitSemVer = "org.danilopianini.git-sensitive-semantic-versioning:5.1.8"
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 
 [libraries]
