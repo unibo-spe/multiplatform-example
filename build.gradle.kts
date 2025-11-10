@@ -7,7 +7,7 @@ group = "io.github.gciatto"
 
 gitSemVer {
     excludeLightweightTags()
-    assignGitSemanticVersion()
+    gitSensitiveSemanticVersion.toString()
 }
 
 allprojects {

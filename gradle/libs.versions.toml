@@ -1,11 +1,11 @@
 [versions]
-kotlin = "2.1.21"
-jvm = "11"
+kotlin = "2.0.21"
+jvm = "17"
 node = "16-latest"
 shadowJar = "8.0.0"
 
 [plugins]
-gitSemVer = "org.danilopianini.git-sensitive-semantic-versioning:4.0.2"
+gitSemVer = { id = "org.danilopianini.git-sensitive-semantic-versioning-gradle-plugin", version = "7.0.6" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 
 [libraries]
