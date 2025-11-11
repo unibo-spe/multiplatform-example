@@ -1,8 +1,9 @@
-import java.io.ByteArrayOutputStream
-import java.io.OutputStream
+import org.gradle.kotlin.dsl.register
 
 
-tasks.create<Copy>("createCoreJar") {
+val versionPattern = Regex("""(\d+\.\d+\.\d+)""")
+
+tasks.register<Copy>("createCoreJar") {
     group = "Python"
     val shadowJar by project(":csv-core").tasks.getting(Jar::class)
     dependsOn(shadowJar)
@@ -29,11 +30,7 @@ fun findExecutablePath(
 }
 
 val globalPython = findExecutablePath("python3", "python") { path ->
-   exec {
-       errorOutput = OutputStream.nullOutputStream()
-       standardOutput = OutputStream.nullOutputStream()
-       commandLine(path, "--version")
-   }.exitValue == 0
+   providers.exec { commandLine(path, "--version")  }.result.map { it.exitValue == 0 }.get()
 }?.absolutePath
 
 val localPythonEnvRoot = projectDir.resolve("build").resolve("python")
@@ -48,7 +45,7 @@ val python
     get() = localPython ?: globalPython ?: error("Python executable not found")
 
 fun pyTask(name: String, vararg args: String, conf: Exec.() -> Unit = {}) =
-    tasks.create<Exec>(name) {
+    tasks.register<Exec>(name) {
         workingDir(projectDir)
         group = "Python"
         commandLine(python, *args)
@@ -74,17 +71,20 @@ pyTask("pythonTest", "-m", "unittest", "-v") {
     dependsOn("createCoreJar")
 }
 
-tasks.create("test") {
+tasks.register("test") {
     group = "Verification"
     dependsOn("pythonTest")
 }
 
-tasks.create("check") {
+tasks.register("check") {
     group = "Verification"
     dependsOn("test")
 }
 
-exec {
-    println("Using interpreter: $python")
-    commandLine(python, "--version")
-}
+val pythonVersion = providers.exec { commandLine(python, "--version") }
+    .standardOutput
+    .asText
+    .map { versionPattern.find(it)?.groups?.get(1)?.value ?: "???" }
+    .get()
+
+println("Using Python interpreter v$pythonVersion, located in $python")
