@@ -32,6 +32,7 @@ fun Project.shadowJar(
         locations.map { it.asFile }.map { if (it.isDirectory) fileTree(it) else zipTree(it) }.reduce(FileTree::plus)
     fun fileShouldBeIncluded(file: File): Boolean = excludedPlatforms.none { file.name.endsWith("$it.jar") }
     return tasks.maybeCreate(name, ShadowJar::class.java).also { jarTask ->
+        jarTask.group = "shadow"
         entryPoint?.let { jarTask.manifest { attributes("Main-Class" to it) } }
         jarTask.archiveBaseName.set(project.provider { "${rootProject.name}-${project.name}" })
         jarTask.archiveVersion.set(project.provider { project.version.toString() })
@@ -49,6 +50,7 @@ fun Project.shadowJar(
     }
 }
 
+@Suppress("UnusedReceiverParameter")
 private fun Project.configureJarFromFileCollection(
     jarTask: ShadowJar,
     fileCollection: FileCollection,

@@ -2,7 +2,7 @@
 kotlin = "2.0.21"
 jvm = "17"
 node = "16-latest"
-shadowJar = "8.0.0"
+shadowJar = "9.2.2"
 
 [plugins]
 gitSemVer = { id = "org.danilopianini.git-sensitive-semantic-versioning-gradle-plugin", version = "7.0.6" }
@@ -16,4 +16,4 @@ kotlin-stdlib-js = { module = "org.jetbrains.kotlin:kotlin-stdlib-js", version.r
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 kotlin-test-js = { module = "org.jetbrains.kotlin:kotlin-test-js", version.ref = "kotlin" }
-shadowJar = { module = "gradle.plugin.com.github.johnrengelman:shadow", version.ref = "shadowJar" }
+shadowJar = { module = "com.gradleup.shadow:shadow-gradle-plugin", version.ref = "shadowJar" }
