@@ -5,7 +5,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("multiplatform")
-    id("com.github.johnrengelman.shadow")
 }
 
 val nodeVersion = project.findProperty("nodeVersion")?.toString()?.takeUnless { it.isBlank() }
@@ -33,7 +32,7 @@ kotlin {
         }
     }
     jvm {
-        withJava()
+//        withJava()
         compilerOptions {
             jvmTarget.set(jvmVersion.map { JvmTarget.valueOf("JVM_$it") })
         }
@@ -79,13 +78,15 @@ kotlin {
 tasks.register("test") {
     dependsOn("jvmTest")
     dependsOn("jsTest")
+    group = "verification"
 }
 
-tasks.getByName("classes") {
+tasks.register("classes") {
     dependsOn("jvmMainClasses")
     dependsOn("jsMainClasses")
     dependsOn("jvmTestClasses")
     dependsOn("jsTestClasses")
+    group = "build"
 }
 
 shadowJar()
