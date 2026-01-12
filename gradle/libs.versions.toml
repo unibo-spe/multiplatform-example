@@ -2,7 +2,7 @@
 kotlin = "2.3.0"
 jvm = "17"
 node = "16-latest"
-shadowJar = "9.3.0"
+shadowJar = "9.3.1"
 
 [plugins]
 gitSemVer = { id = "org.danilopianini.git-sensitive-semantic-versioning-gradle-plugin", version = "7.0.8" }
