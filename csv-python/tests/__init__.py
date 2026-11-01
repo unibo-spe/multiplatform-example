@@ -1,6 +1,5 @@
 import jcsv
 
-
 STRING_IRIS = """
 # sepal_length, sepal_width, petal_length, petal_width, class
 5.1,3.5,1.4,0.2,Iris-setosa

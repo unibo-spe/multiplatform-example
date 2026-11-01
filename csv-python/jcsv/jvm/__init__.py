@@ -4,7 +4,6 @@ from pathlib import Path
 import jpype
 from jdk4py import JAVA_HOME
 
-
 # the directory where csv.jar is placed
 CLASSPATH = Path(__file__).parent
 

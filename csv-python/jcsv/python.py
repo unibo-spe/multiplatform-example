@@ -1,14 +1,14 @@
-from collections.abc import Iterable
-from typing import Callable, TypeVar
+from collections.abc import Callable, Iterable
+from typing import TypeVar
 
-T = TypeVar('T')
-R = TypeVar('R')
+T = TypeVar("T")
+R = TypeVar("R")
 
 
 def iterable_or_varargs(
-        args: tuple,
-        dispatch: Callable[[Iterable[T]], R] = lambda x: x,
-        atomic: tuple = (str, bytes),
+    args: tuple,
+    dispatch: Callable[[Iterable[T]], R] = lambda x: x,
+    atomic: tuple = (str, bytes),
 ) -> R:
     """
     Simulates the overloads f(*items) and f(iterable_of_items):

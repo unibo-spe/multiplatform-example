@@ -1,7 +1,7 @@
 import unittest
-import test
-import jcsv
 
+import jcsv
+import tests as test
 
 table = test.TABLE_IRIS
 header = table.header
@@ -10,7 +10,9 @@ records = table.records[-1]
 
 class TestHeader(unittest.TestCase):
     def test_columns(self):
-        self.assertEqual(header.columns, ["sepal_length", "sepal_width", "petal_length", "petal_width", "class"])
+        self.assertEqual(
+            header.columns, ["sepal_length", "sepal_width", "petal_length", "petal_width", "class"]
+        )
 
     def test_size(self):
         self.assertEqual(header.size, 5)
@@ -26,10 +28,15 @@ class TestHeader(unittest.TestCase):
         self.assertFalse("missing_column" in header)
 
     def test_str(self):
-        self.assertEqual(str(header), 'Header("sepal_length", "sepal_width", "petal_length", "petal_width", "class")')
+        self.assertEqual(
+            str(header),
+            'Header("sepal_length", "sepal_width", "petal_length", "petal_width", "class")',
+        )
 
     def test_eq(self):
-        another_header = jcsv.header("sepal_length", "sepal_width", "petal_length", "petal_width", "class")
+        another_header = jcsv.header(
+            "sepal_length", "sepal_width", "petal_length", "petal_width", "class"
+        )
         self.assertEqual(header, another_header)
         self.assertEqual(hash(header), hash(another_header))
 
@@ -103,5 +110,5 @@ class TestFactories(unittest.TestCase):
         self.assertEqual(t[1].values, ["1", "2"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,15 +1,14 @@
-from typing import Iterable as PyIterable
-from typing import Iterator as PyIterator
-from typing import Mapping, MutableMapping, Callable, Any
+from collections.abc import Callable, Mapping, MutableMapping
+from collections.abc import Iterable as PyIterable
+from collections.abc import Iterator as PyIterator
+from typing import Any
 
 import jpype
-import jpype.imports
-
 from _jpype import _JObject as JObjectClass
-import java.util as _jutils
-import java.lang as _jlang
-import kotlin as _kotlin
 
+_jlang = jpype.JPackage("java.lang")
+_jutils = jpype.JPackage("java.util")
+_kotlin = jpype.JPackage("kotlin")
 
 Arrays = _jutils.Arrays
 
@@ -33,7 +32,7 @@ Triple = _kotlin.Triple
 
 
 @jpype.JImplements("java.util.Iterator", deferred=True)
-class _IteratorAdapter(object):
+class _IteratorAdapter:
     def __init__(self, iterator):
         assert isinstance(iterator, PyIterator)
         self._iterator = iterator
@@ -65,7 +64,7 @@ class _IteratorAdapter(object):
 
 
 @jpype.JImplements("java.lang.Iterable", deferred=True)
-class _IterableAdapter(object):
+class _IterableAdapter:
     def __init__(self, iterable):
         assert isinstance(iterable, PyIterable)
         self._iterable = iterable
@@ -135,7 +134,7 @@ def jiterator(iterator: PyIterator) -> Iterator:
 
 def jmap(dictionary: Mapping) -> Map:
     assert isinstance(dictionary, Mapping)
-    return Map@dictionary
+    return Map @ dictionary
 
 
 def _java_obj_repr(java_object: Object) -> str:
@@ -204,11 +203,12 @@ class _KtFunction(Callable):
         return self.invoke(*args)
 
 
-_kt_function_classes: MutableMapping[int, Any] = dict()
+_kt_function_classes: MutableMapping[int, Any] = {}
 
 
 def kfunction(arity: int):
     if arity not in _kt_function_classes:
+
         @jpype.JImplements("kotlin.jvm.functions.Function" + str(arity), deferred=True)
         class _KtFunctionN(_KtFunction):
             def __init__(self, f):
@@ -222,5 +222,10 @@ def kfunction(arity: int):
     return _kt_function_classes[arity]
 
 
-print("start Java version", System.getProperty("java.version"), "from", System.getProperty("java.home"))
+print(
+    "start Java version",
+    System.getProperty("java.version"),
+    "from",
+    System.getProperty("java.home"),
+)
 print("\tclasspath:", System.getProperty("java.class.path"))

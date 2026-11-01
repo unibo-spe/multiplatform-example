@@ -1,9 +1,11 @@
 import typing
 
 import jpype
-import jcsv.jvm as jvm  # starts the JVM, with csv.jar on the classpath
-import jcsv.python as python
 
+from jcsv import (
+    jvm,  # starts the JVM, with csv.jar on the classpath
+    python,
+)
 
 _csv = jpype.JPackage("io.github.gciatto.csv")
 _java = jpype.JPackage("java.lang")
@@ -23,11 +25,13 @@ CsvJvm = _csv.CsvJvm
 def header(*args):
     if len(args) == 1 and isinstance(args[0], int):
         return Csv.anonymousHeader(args[0])
-    return python.iterable_or_varargs(args, lambda xs: Csv.headerOf(jvm.Iterable@map(str, xs)))
+    return python.iterable_or_varargs(args, lambda xs: Csv.headerOf(jvm.Iterable @ map(str, xs)))
 
 
 def record(header, *args):
-    return python.iterable_or_varargs(args, lambda xs: Csv.recordOf(header, jvm.Iterable@map(str, xs)))
+    return python.iterable_or_varargs(
+        args, lambda xs: Csv.recordOf(header, jvm.Iterable @ map(str, xs))
+    )
 
 
 def __ensure_header(h):
@@ -42,21 +46,36 @@ def table(header, *args):
     header = __ensure_header(header)
     return python.iterable_or_varargs(
         args,
-        lambda rows: Csv.tableOf(header, jvm.Iterable@[__ensure_record(r, header) for r in rows]),
+        lambda rows: Csv.tableOf(header, jvm.Iterable @ [__ensure_record(r, header) for r in rows]),
         atomic=(str, bytes, Row),  # a single Row is a record, not an iterable of records
     )
 
 
-def parse_csv_string(string, separator = Csv.DEFAULT_SEPARATOR, delimiter = Csv.DEFAULT_DELIMITER, comment = Csv.DEFAULT_COMMENT):
+def parse_csv_string(
+    string,
+    separator=Csv.DEFAULT_SEPARATOR,
+    delimiter=Csv.DEFAULT_DELIMITER,
+    comment=Csv.DEFAULT_COMMENT,
+):
     return Csv.parseAsCSV(string, separator, delimiter, comment)
 
 
-def parse_csv_file(path, separator = Csv.DEFAULT_SEPARATOR, delimiter = Csv.DEFAULT_DELIMITER, comment = Csv.DEFAULT_COMMENT):
+def parse_csv_file(
+    path,
+    separator=Csv.DEFAULT_SEPARATOR,
+    delimiter=Csv.DEFAULT_DELIMITER,
+    comment=Csv.DEFAULT_COMMENT,
+):
     return CsvJvm.parseCsvFile(str(path), separator, delimiter, comment)
 
 
-def format_as_csv(rows, separator = Csv.DEFAULT_SEPARATOR, delimiter = Csv.DEFAULT_DELIMITER, comment = Csv.DEFAULT_COMMENT):
-    return Csv.formatAsCSV(jvm.Iterable@rows, separator, delimiter, comment)
+def format_as_csv(
+    rows,
+    separator=Csv.DEFAULT_SEPARATOR,
+    delimiter=Csv.DEFAULT_DELIMITER,
+    comment=Csv.DEFAULT_COMMENT,
+):
+    return Csv.formatAsCSV(jvm.Iterable @ rows, separator, delimiter, comment)
 
 
 @jpype.JImplementationFor("io.github.gciatto.csv.Configuration")
@@ -99,7 +118,7 @@ class _Record:
         return self.getHeader()
 
     @property
-    def values(self) -> typing.List[str]:
+    def values(self) -> list[str]:
         return [str(v) for v in self.getValues()]
 
     def __contains__(self, item: str) -> bool:
@@ -109,7 +128,7 @@ class _Record:
 @jpype.JImplementationFor("io.github.gciatto.csv.Header")
 class _Header:
     @property
-    def columns(self) -> typing.List[str]:
+    def columns(self) -> list[str]:
         return [str(c) for c in self.getColumns()]
 
     def __contains__(self, item: str) -> bool:
@@ -137,7 +156,7 @@ class _Table:
             raise IndexError(f"index {item} out of range") from e
 
     @property
-    def records(self) -> typing.List[Record]:
+    def records(self) -> list[Record]:
         return self.getRecords()
 
     @property

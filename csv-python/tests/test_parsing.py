@@ -1,10 +1,9 @@
 import unittest
-import test
+
 import jcsv
+import tests as test
 
-import jpype.imports
-
-from java.lang import IllegalStateException
+IllegalStateException = jcsv._java.IllegalStateException
 
 
 class TestParsing(unittest.TestCase):
@@ -15,7 +14,7 @@ class TestParsing(unittest.TestCase):
     def test_parse_iris_with_noise(self):
         table = jcsv.parse_csv_string(test.STRING_IRIS_WITH_NOISE)
         self.assertEqual(table, test.TABLE_IRIS_WITH_NOISE)
-    
+
     def test_parse_iris_with_wrong_header(self):
         with self.assertRaises(IllegalStateException):
             jcsv.parse_csv_string(test.STRING_IRIS_WITH_WRONG_HEADER)
@@ -33,5 +32,5 @@ class TestParsing(unittest.TestCase):
         self.assertEqual(table, test.TABLE_IRIS_WITH_MISPLACED_HEADER)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

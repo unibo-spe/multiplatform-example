@@ -1,20 +1,57 @@
-[build-system]
-requires = ["setuptools>=77"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "jcsv"
 version = "0.1.0"
 description = "Pythonic wrapper of a Kotlin/JVM CSV library, via JPype"
 requires-python = ">=3.10"
 dependencies = [
-    "JPype1==1.7.1",
-    "jdk4py==25.0.2.1",
+    "JPype1>=1.7.1",
+    "jdk4py>=25.0.2.1",
 ]
 
-[tool.setuptools.packages.find]
-include = ["jcsv*"]
+[project.scripts]
+jcsv = "jcsv.__main__:main"
 
-[tool.setuptools.package-data]
-# ships the fat JAR of the Kotlin/JVM library (created by `./gradlew createCoreJar`) within the Python package
-"jcsv.jvm" = ["*.jar"]
+[build-system]
+requires = ["uv_build>=0.13.0,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "coverage>=7.14.0",
+    "mypy>=2.1.0",
+    "poethepoet>=0.45.0",
+    "pytest>=9.0.3",
+    "ruff>=0.15.12",
+]
+
+[tool.uv.build-backend]
+module-name = "jcsv"
+module-root = ""
+
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
+
+[tool.poe.tasks]
+test = "pytest"
+coverage = "coverage run -m pytest"
+coverage-report = "coverage report -m"
+coverage-html = "coverage html"
+ruff-check = "ruff check"
+ruff-fix = "ruff check --fix"
+format = "ruff format"
+format-check = "ruff format --check"
+mypy = "mypy jcsv tests"
+compile = "python -m compileall -q jcsv tests"
+static-checks = ["compile", "format-check", "ruff-check"]
+static-fixes = ["ruff-fix", "format"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+extend-exclude = ["build"]

@@ -1,9 +1,22 @@
-import org.gradle.kotlin.dsl.register
+import io.github.gciatto.python.uv.tasks.PoeTask
 
+plugins {
+    id("io.github.gciatto.python-uv")
+}
 
-val versionPattern = Regex("""(\d+\.\d+\.\d+)""")
+python {
+    pyproject {
+        name = "jcsv"
+        description = "Pythonic wrapper of a Kotlin/JVM CSV library, via JPype"
+        dependency("JPype1>=1.7.1")
+        dependency("jdk4py>=25.0.2.1")
+        // no mypy: JPype customisers call Java methods that only exist at runtime
+        poeSequence("static-checks", "compile", "format-check", "ruff-check")
+    }
+}
 
-tasks.register<Copy>("createCoreJar") {
+// Copies the fat JAR of :csv-core into the Python package, as jcsv/jvm/csv.jar
+val createCoreJar by tasks.registering(Copy::class) {
     group = "Python"
     val shadowJar by project(":csv-core").tasks.getting(Jar::class)
     dependsOn(shadowJar)
@@ -13,78 +26,6 @@ tasks.register<Copy>("createCoreJar") {
     into(projectDir.resolve("jcsv/jvm"))
 }
 
-fun findExecutablePath(
-    name: String,
-    vararg otherNames: String,
-    test: (File) -> Boolean = { true }
-): File? {
-    val names = listOf(name, *otherNames).flatMap { listOf(it, "$it.exe") }
-    return System.getenv("PATH")
-        .split(File.pathSeparatorChar)
-        .asSequence()
-        .map { File(it) }
-        .flatMap { path -> names.asSequence().map { path.resolve(it) } }
-        .filter { it.exists() }
-        .filter(test)
-        .firstOrNull()
-}
-
-val globalPython = findExecutablePath("python3", "python") { path ->
-   providers.exec { commandLine(path, "--version")  }.result.map { it.exitValue == 0 }.get()
-}?.absolutePath
-
-val localPythonEnvRoot = projectDir.resolve("build").resolve("python")
-
-val localPython
-    get() = fileTree(localPythonEnvRoot) {
-        include("**/python")
-        include("**/python.exe")
-    }.firstOrNull()?.absolutePath
-
-val python
-    get() = localPython ?: globalPython ?: error("Python executable not found")
-
-fun pyTask(name: String, vararg args: String, conf: Exec.() -> Unit = {}) =
-    tasks.register<Exec>(name) {
-        workingDir(projectDir)
-        group = "Python"
-        conf(this)
-        doFirst { commandLine(python, *args) } // lazily picks the virtual env's Python, once created
-    }
-
-pyTask("createVirtualEnv", "-m", "venv", localPythonEnvRoot.path) {
-    outputs.dir(localPythonEnvRoot)
-    doLast {
-        when (val path = localPython) {
-            null -> error("Virtual environment creation failed")
-            else -> println("Created local Python environment in $path")
-        }
-    }
-}
-
-pyTask("restoreDependencies", "-m", "pip", "install", "-e", ".") {
-    dependsOn("createVirtualEnv")
-}
-
-pyTask("pythonTest", "-m", "unittest", "-v") {
-    dependsOn("restoreDependencies")
-    dependsOn("createCoreJar")
-}
-
-tasks.register("test") {
-    group = "Verification"
-    dependsOn("pythonTest")
-}
-
-tasks.register("check") {
-    group = "Verification"
-    dependsOn("test")
-}
-
-val pythonVersion = providers.exec { commandLine(python, "--version") }
-    .standardOutput
-    .asText
-    .map { versionPattern.find(it)?.groups?.get(1)?.value ?: "???" }
-    .get()
-
-println("Using Python interpreter v$pythonVersion, located in $python")
+// tests, static checks, and packaging (uv build) all need csv.jar
+tasks.withType<PoeTask>().configureEach { dependsOn(createCoreJar) }
+tasks.named("uvBuild") { dependsOn(createCoreJar) }

@@ -1,0 +1,3 @@
+[submodule "gradle-python-uv"]
+	path = gradle-python-uv
+	url = https://github.com/gciatto/gradle-python-uv.git
