@@ -2,6 +2,8 @@
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsEnvSpec
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsPlugin
 
 plugins {
     kotlin("multiplatform")
@@ -17,6 +19,13 @@ java {
     targetCompatibility = sourceCompatibility
 }
 
+// the Node.js version to download and use for running / testing JS code
+plugins.withType<NodeJsPlugin> {
+    the<NodeJsEnvSpec>().version = NodeVersions.latest(nodeVersion).also {
+        println("Using Node.js version $it")
+    }
+}
+
 kotlin {
     compilerOptions {
         allWarningsAsErrors = true
@@ -25,11 +34,7 @@ kotlin {
     js {
         useEsModules()
         binaries.executable()
-        nodejs {
-            version = NodeVersions.latest(nodeVersion).also {
-                println("Using Node.js version $it")
-            }
-        }
+        nodejs()
     }
     jvm {
         compilerOptions {
