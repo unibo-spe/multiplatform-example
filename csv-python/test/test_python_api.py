@@ -89,5 +89,19 @@ class TestTable(unittest.TestCase):
         self.assertRaises(IndexError, table.__getitem__, -5)
 
 
+class TestFactories(unittest.TestCase):
+    def test_single_string_column(self):
+        self.assertEqual(jcsv.header("col").columns, ["col"])
+
+    def test_iterable_of_columns(self):
+        self.assertEqual(jcsv.header(f"c{i}" for i in range(3)).columns, ["c0", "c1", "c2"])
+
+    def test_single_record_table(self):
+        h = jcsv.header("a", "b")
+        t = jcsv.table(h, jcsv.record(h, "1", "2"))
+        self.assertEqual(len(t), 2)
+        self.assertEqual(t[1].values, ["1", "2"])
+
+
 if __name__ == '__main__':
     unittest.main()

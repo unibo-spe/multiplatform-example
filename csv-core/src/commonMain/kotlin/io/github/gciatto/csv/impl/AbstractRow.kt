@@ -2,7 +2,7 @@ package io.github.gciatto.csv.impl
 
 import io.github.gciatto.csv.Row
 
-abstract class AbstractRow(protected open val values: List<String>) : Row {
+internal abstract class AbstractRow(protected open val values: List<String>) : Row {
     override val size: Int
         get() = values.size
 

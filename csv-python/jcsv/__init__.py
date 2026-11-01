@@ -1,7 +1,7 @@
 import typing
 
 import jpype
-import jcsv.jvm as jvm
+import jcsv.jvm as jvm  # starts the JVM, with csv.jar on the classpath
 import jcsv.python as python
 
 
@@ -40,8 +40,11 @@ def __ensure_record(r, h):
 
 def table(header, *args):
     header = __ensure_header(header)
-    args = [__ensure_record(row, header) for row in args]
-    return python.iterable_or_varargs(args, lambda xs: Csv.tableOf(header, jvm.Iterable@xs))
+    return python.iterable_or_varargs(
+        args,
+        lambda rows: Csv.tableOf(header, jvm.Iterable@[__ensure_record(r, header) for r in rows]),
+        atomic=(str, bytes, Row),  # a single Row is a record, not an iterable of records
+    )
 
 
 def parse_csv_string(string, separator = Csv.DEFAULT_SEPARATOR, delimiter = Csv.DEFAULT_DELIMITER, comment = Csv.DEFAULT_COMMENT):
@@ -69,24 +72,6 @@ class _Configuration:
     @property
     def comment(self) -> str:
         return self.getComment()
-
-
-@jpype.JImplementationFor("io.github.gciatto.csv.Row")
-class _Row:
-    def __len__(self):
-        return self.getSize()
-
-    def __getitem__(self, item):
-        if isinstance(item, int) and item < 0:
-            item = len(self) + item
-        try:
-            return self.get(item)
-        except _java.IndexOutOfBoundsException as e:
-            raise IndexError(f"index {item} out of range") from e
-
-    @property
-    def size(self):
-        return len(self)
 
 
 @jpype.JImplementationFor("io.github.gciatto.csv.Row")

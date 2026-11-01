@@ -5,8 +5,9 @@ import io.github.gciatto.csv.Record
 import io.github.gciatto.csv.Row
 import io.github.gciatto.csv.Table
 
-class DefaultTable(override val header: Header, records: Iterable<Record>) : Table {
-    override val records: List<Record> by lazy { records.toList() }
+internal class DefaultTable(override val header: Header, records: Iterable<Record>) : Table {
+    // Eager, defensive copy of the records
+    override val records: List<Record> = records.toList()
 
     override fun get(row: Int): Row = if (row == 0) header else records[row - 1]
 
@@ -16,10 +17,7 @@ class DefaultTable(override val header: Header, records: Iterable<Record>) : Tab
     override fun iterator(): Iterator<Row> = (sequenceOf(header) + records.asSequence()).iterator()
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as DefaultTable
-
+        if (other !is DefaultTable) return false
         if (header != other.header) return false
         if (records != other.records) return false
 

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jcsv"
+version = "0.1.0"
+description = "Pythonic wrapper of a Kotlin/JVM CSV library, via JPype"
+requires-python = ">=3.10"
+dependencies = [
+    "JPype1==1.7.1",
+    "jdk4py==25.0.2.1",
+]
+
+[tool.setuptools.packages.find]
+include = ["jcsv*"]
+
+[tool.setuptools.package-data]
+# ships the fat JAR of the Kotlin/JVM library (created by `./gradlew createCoreJar`) within the Python package
+"jcsv.jvm" = ["*.jar"]

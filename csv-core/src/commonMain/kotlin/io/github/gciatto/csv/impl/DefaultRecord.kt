@@ -3,14 +3,14 @@ package io.github.gciatto.csv.impl
 import io.github.gciatto.csv.Header
 import io.github.gciatto.csv.Record
 
-class DefaultRecord(
+internal class DefaultRecord(
     override val header: Header,
     values: Iterable<String>
 ) : Record, AbstractRow(values.toList()) {
 
     init {
         require(header.size == super.values.size) {
-            "Inconsistent amount of values (${super.values.size}) w.r.t. to header size (${header.size})"
+            "Inconsistent amount of values (${super.values.size}) w.r.t. header size (${header.size})"
         }
     }
 

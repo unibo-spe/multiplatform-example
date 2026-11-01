@@ -1,8 +1,6 @@
 package io.github.gciatto.csv
 
-private val Math: dynamic by lazy {
-    js("Math")
-}
+import kotlin.random.Random
 
 private val tmpDirectory by lazy {
     tmpdir()
@@ -10,7 +8,7 @@ private val tmpDirectory by lazy {
 
 actual fun createTempFile(name: String, content: String): String {
     val (n, e) = name.splitExtension()
-    val tag = Math.random().toString().replace(".", "")
+    val tag = Random.nextLong().toULong()
     val path = "$tmpDirectory/$n-$tag.$e"
     writeFileSync(path, content)
     return path

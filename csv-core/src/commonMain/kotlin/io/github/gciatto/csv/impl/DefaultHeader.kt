@@ -2,7 +2,7 @@ package io.github.gciatto.csv.impl
 
 import io.github.gciatto.csv.Header
 
-class DefaultHeader(columns: Iterable<String>) : Header, AbstractRow(columns.toList()) {
+internal class DefaultHeader(columns: Iterable<String>) : Header, AbstractRow(columns.toList()) {
     private val indexesByName by lazy {
         values.mapIndexed { index, name -> name to index }.toMap()
     }

@@ -5,7 +5,7 @@ import io.github.gciatto.csv.Formatter
 import io.github.gciatto.csv.Header
 import io.github.gciatto.csv.Row
 
-class DefaultFormatter(
+internal class DefaultFormatter(
     override val source: Iterable<Row>,
     override val configuration: Configuration
 ) : Formatter {

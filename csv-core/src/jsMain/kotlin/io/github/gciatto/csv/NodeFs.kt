@@ -1,5 +1,4 @@
 @file:JsModule("fs")
-@file:JsNonModule
 
 package io.github.gciatto.csv
 

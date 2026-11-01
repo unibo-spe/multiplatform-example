@@ -1,35 +1,21 @@
-import jpype
-from pathlib import Path
 import sys
+from pathlib import Path
 
+import jpype
 from jdk4py import JAVA_HOME
 
 
-CLASSPATH = Path(__file__).parents[0]
+# the directory where csv.jar is placed
+CLASSPATH = Path(__file__).parent
 
+# the list of all .jar files in CLASSPATH
+JARS = [str(j.resolve()) for j in CLASSPATH.glob("*.jar")]
 
-def __jvm_lib_file_names():
-    if sys.platform == "win32":
-        return {"jvm.dll"}
-    elif sys.platform == "darwin":
-        return {"libjli.dylib"}
-    else:
-        return {"libjvm.so"}
+# the JVM library shipped by jdk4py, for the current OS
+JVM_LIB = {"win32": "jvm.dll", "darwin": "libjli.dylib"}.get(sys.platform, "libjvm.so")
+JVM_PATH = str(next(JAVA_HOME.rglob(JVM_LIB)))
 
-
-def __jvmlib(): 
-    for name in __jvm_lib_file_names():
-        for path in JAVA_HOME.glob(f"**/{name}"):
-            path.resolve()
-            if path.exists:
-                return path
-    return None
-
-
-__jars = [str(j.resolve()) for j in CLASSPATH.glob('*.jar')]
-
-
-jpype.startJVM(classpath=__jars, jvmpath=str(__jvmlib()))
+jpype.startJVM(jvmpath=JVM_PATH, classpath=JARS)
 
 
 from .__jvmutils import *

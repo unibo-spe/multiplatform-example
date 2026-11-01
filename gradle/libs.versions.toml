@@ -1,7 +1,7 @@
 [versions]
 kotlin = "2.3.10"
 jvm = "17"
-node = "16-latest"
+node = "24-latest"
 shadowJar = "9.6.1"
 
 [plugins]
@@ -10,10 +10,4 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 
 [libraries]
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
-kotlin-stdlib-jvm = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
-kotlin-stdlib-js = { module = "org.jetbrains.kotlin:kotlin-stdlib-js", version.ref = "kotlin" }
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
-kotlin-test-js = { module = "org.jetbrains.kotlin:kotlin-test-js", version.ref = "kotlin" }
 shadowJar = { module = "com.gradleup.shadow:shadow-gradle-plugin", version.ref = "shadowJar" }

@@ -48,8 +48,8 @@ fun pyTask(name: String, vararg args: String, conf: Exec.() -> Unit = {}) =
     tasks.register<Exec>(name) {
         workingDir(projectDir)
         group = "Python"
-        commandLine(python, *args)
         conf(this)
+        doFirst { commandLine(python, *args) } // lazily picks the virtual env's Python, once created
     }
 
 pyTask("createVirtualEnv", "-m", "venv", localPythonEnvRoot.path) {
@@ -62,7 +62,7 @@ pyTask("createVirtualEnv", "-m", "venv", localPythonEnvRoot.path) {
     }
 }
 
-pyTask("restoreDependencies", "-m", "pip", "install", "-r", "requirements.txt") {
+pyTask("restoreDependencies", "-m", "pip", "install", "-e", ".") {
     dependsOn("createVirtualEnv")
 }
 

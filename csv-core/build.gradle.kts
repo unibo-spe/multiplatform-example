@@ -32,45 +32,15 @@ kotlin {
         }
     }
     jvm {
-//        withJava()
         compilerOptions {
             jvmTarget.set(jvmVersion.map { JvmTarget.valueOf("JVM_$it") })
         }
     }
     sourceSets {
-        commonMain {
-            dependencies {
-                api(libs.kotlin.stdlib)
-            }
-        }
-        commonTest {
-            dependencies {
-               api(libs.kotlin.test)
-            }
-        }
-
-        getByName("jvmMain") {
-            dependencies {
-                api(libs.kotlin.stdlib.jvm)
-            }
-        }
-
-        getByName("jvmTest") {
-            dependencies {
-                api(libs.kotlin.test.junit)
-            }
-        }
-
-        getByName("jsMain") {
-            dependencies {
-                api(libs.kotlin.stdlib.js)
-            }
-        }
-
-        getByName("jsTest") {
-            dependencies {
-                api(libs.kotlin.test.js)
-            }
+        // the Kotlin stdlib is added automatically to all source sets
+        commonTest.dependencies {
+            // kotlin.test, with the right platform-specific variant for each target
+            implementation(kotlin("test"))
         }
     }
 }
