@@ -1,0 +1,53 @@
+name: Build and Test
+on:
+  workflow_call:
+    inputs:
+      summary-check-run:
+        description: "Id of the run's \"CI summary\" check run, which each job updates as it finishes (see dispatcher.yml)."
+        required: false
+        type: string
+        default: ''
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-26.04
+    env:
+      # JUnit XML report of the Python tests, for the CI summary
+      PYTEST_ADDOPTS: --junitxml=build/test-results/pytest/TEST-jcsv.xml
+    steps:
+      - name: Checkout
+        uses: DanySK/action-checkout@0.2.31
+      - uses: DanySK/build-check-deploy-gradle-action@4.0.50
+        with:
+          retries-on-failure: '2'
+          # Kotlin (JVM, JS) and Python (tests, ruff, pyproject.toml in sync) checks
+          check-command: ./gradlew check --parallel --continue
+          should-run-codecov: false
+      - name: CI summary
+        if: always()
+        uses: ./.github/actions/ci-summary
+        with:
+          kind: build
+          name: ci-digest-build
+          outcome: ${{ job.status }}
+          check-run: ${{ inputs.summary-check-run }}
+  test-extensively:
+    needs:
+      - build
+    uses: ./.github/workflows/test-extensively.yml
+    with:
+      summary-check-run: ${{ inputs.summary-check-run }}
+  success:
+    runs-on: ubuntu-26.04
+    needs:
+      - build
+      - test-extensively
+    if: >-
+      always() && (
+        contains(join(needs.*.result, ','), 'failure')
+        || !contains(join(needs.*.result, ','), 'cancelled')
+      )
+    steps:
+      - name: Verify that there were no failures
+        run: ${{ !contains(join(needs.*.result, ','), 'failure') }}

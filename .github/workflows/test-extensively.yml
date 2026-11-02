@@ -1,6 +1,12 @@
 name: Test Extensively
 on:
   workflow_call:
+    inputs:
+      summary-check-run:
+        description: "Id of the run's \"CI summary\" check run, which each job updates as it finishes (see dispatcher.yml)."
+        required: false
+        type: string
+        default: ''
   workflow_dispatch:
 
 jobs:
@@ -8,13 +14,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-2022, macos-14, ubuntu-22.04 ]
+        os: [ windows-latest, macos-latest, ubuntu-latest ]
         java-version: [17, 21, 25]
         jdk-dist:
-          - adopt-hotspot
+          - oracle
           - temurin
-#          - adopt-openj9
-#          - zulu
     runs-on: ${{ matrix.os }}
     concurrency:
       group: build-${{ github.workflow }}-${{ matrix.os }}-${{ matrix.java-version }}-${{ matrix.jdk-dist }}-${{ github.event.number || github.ref }}
@@ -22,26 +26,58 @@ jobs:
     steps:
       - name: Checkout
         uses: DanySK/action-checkout@0.2.31
-      - uses: DanySK/build-check-deploy-gradle-action@4.0.50
+      - name: Restore Gradle test cache
+        id: cache-test-result
+        uses: actions/cache/restore@v6.1.0
         with:
+          path: .github/.cache/test-extensively-jvm
+          key: ${{ format('test-extensively-jvm-{0}-java-{1}-{2}-{3}', runner.os, matrix.java-version, matrix.jdk-dist, hashFiles('**/src/**', '**/*.gradle.kts', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties', 'buildSrc/**/*.kt')) }}
+      - name: Run tests
+        id: run-tests
+        if: steps.cache-test-result.outputs.cache-hit != 'true'
+        uses: DanySK/build-check-deploy-gradle-action@4.0.50
+        with:
+          retries-on-failure: '2'
           java-distribution: ${{ matrix.jdk-dist }}
           java-version: ${{ matrix.java-version }}
           build-command: |
-            ./gradlew classes
+            ./gradlew jvmMainClasses jvmTestClasses --parallel --continue
           check-command: |
-            ./gradlew jvmTest
+            ./gradlew jvmTest --parallel --continue
           should-run-codecov: false
+      - name: Mark successful test cache
+        if: steps.cache-test-result.outputs.cache-hit != 'true' && steps.run-tests.conclusion == 'success'
+        run: |
+          mkdir -p .github/.cache/test-extensively-jvm
+          echo "ok" > .github/.cache/test-extensively-jvm/success
+      - name: Save Gradle test cache
+        if: steps.cache-test-result.outputs.cache-hit != 'true' && steps.run-tests.conclusion == 'success'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: .github/.cache/test-extensively-jvm
+          key: ${{ steps.cache-test-result.outputs.cache-primary-key }}
+      - name: Skip tests on cache hit
+        if: steps.cache-test-result.outputs.cache-hit == 'true'
+        run: echo "Inputs unchanged since last successful run, skipping tests."
+      - name: CI summary
+        if: always()
+        uses: ./.github/actions/ci-summary
+        with:
+          kind: matrix
+          name: ci-digest-jvm-${{ matrix.os }}-${{ matrix.java-version }}-${{ matrix.jdk-dist }}
+          dims: runtime=jvm os=${{ matrix.os }} version=${{ matrix.java-version }} dist=${{ matrix.jdk-dist }}
+          outcome: ${{ steps.run-tests.outcome }}
+          check-run: ${{ inputs.summary-check-run }}
 
   test-js:
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-2022, macos-14, ubuntu-22.04 ]
+        os: [ windows-latest, macos-latest, ubuntu-latest ]
         node-version:
-          - 'latest-20'
           - 'latest-22'
           - 'latest-24'
-          - 'latest'
+          - 'latest-26'
     runs-on: ${{ matrix.os }}
     env:
       ORG_GRADLE_PROJECT_nodeVersion: ${{ matrix.node-version }}
@@ -51,32 +87,102 @@ jobs:
     steps:
       - name: Checkout
         uses: DanySK/action-checkout@0.2.31
-      - uses: DanySK/build-check-deploy-gradle-action@4.0.50
+      - name: Restore Gradle test cache
+        id: cache-test-result
+        uses: actions/cache/restore@v6.1.0
         with:
+          path: .github/.cache/test-extensively-js
+          key: ${{ format('test-extensively-js-{0}-node-{1}-{2}', runner.os, matrix.node-version, hashFiles('**/src/**', '**/*.gradle.kts', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties', 'buildSrc/**/*.kt', 'package.json')) }}
+      - name: Run tests
+        id: run-tests
+        if: steps.cache-test-result.outputs.cache-hit != 'true'
+        uses: DanySK/build-check-deploy-gradle-action@4.0.50
+        with:
+          retries-on-failure: '2'
           build-command: |
-            ./gradlew classes
+            ./gradlew jsMainClasses jsTestClasses --parallel --continue
           check-command: |
-            ./gradlew jsTest
+            ./gradlew jsTest --parallel --continue
           should-run-codecov: false
+      - name: Mark successful test cache
+        if: steps.cache-test-result.outputs.cache-hit != 'true' && steps.run-tests.conclusion == 'success'
+        run: |
+          mkdir -p .github/.cache/test-extensively-js
+          echo "ok" > .github/.cache/test-extensively-js/success
+      - name: Save Gradle test cache
+        if: steps.cache-test-result.outputs.cache-hit != 'true' && steps.run-tests.conclusion == 'success'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: .github/.cache/test-extensively-js
+          key: ${{ steps.cache-test-result.outputs.cache-primary-key }}
+      - name: Skip tests on cache hit
+        if: steps.cache-test-result.outputs.cache-hit == 'true'
+        run: echo "Inputs unchanged since last successful run, skipping tests."
+      - name: CI summary
+        if: always()
+        uses: ./.github/actions/ci-summary
+        with:
+          kind: matrix
+          name: ci-digest-js-${{ matrix.os }}-${{ matrix.node-version }}
+          dims: runtime=js os=${{ matrix.os }} version=${{ matrix.node-version }}
+          outcome: ${{ steps.run-tests.outcome }}
+          check-run: ${{ inputs.summary-check-run }}
 
   test-python:
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-2022, macos-14, ubuntu-22.04 ]
-        python-version: [ '3_10', '3_11', '3_12', '3_13', '3_14' ]
+        os: [ windows-latest, macos-latest, ubuntu-latest ]
+        python-version: [ '3.10', '3.11', '3.12', '3.13', '3.14' ]
     runs-on: ${{ matrix.os }}
+    env:
+      # uv provisions this Python version, see testedPythonVersions in csv-python/build.gradle.kts
+      PYTHON_VERSION: ${{ matrix.python-version }}
+      # JUnit XML report of the Python tests, for the CI summary
+      PYTEST_ADDOPTS: --junitxml=build/test-results/pytest/TEST-jcsv.xml
     concurrency:
       group: build-${{ github.workflow }}-${{ matrix.os }}-${{ matrix.python-version }}-${{ github.event.number || github.ref }}
       cancel-in-progress: true
     steps:
       - name: Checkout
         uses: DanySK/action-checkout@0.2.31
-      - uses: DanySK/build-check-deploy-gradle-action@4.0.50
+      - name: Restore Gradle test cache
+        id: cache-test-result
+        uses: actions/cache/restore@v6.1.0
         with:
-          # uv provisions the Python version under test
+          path: .github/.cache/test-extensively-python
+          key: ${{ format('test-extensively-python-{0}-python-{1}-{2}', runner.os, matrix.python-version, hashFiles('**/src/**', '**/*.gradle.kts', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties', 'buildSrc/**/*.kt', 'csv-python/**/*.py', 'csv-python/pyproject.toml', 'csv-python/uv.lock')) }}
+      - name: Run tests
+        id: run-tests
+        if: steps.cache-test-result.outputs.cache-hit != 'true'
+        uses: DanySK/build-check-deploy-gradle-action@4.0.50
+        with:
+          retries-on-failure: '2'
           build-command: |
-            ./gradlew :csv-python:createCoreJar
+            ./gradlew :csv-python:createCoreJar --parallel --continue
           check-command: |
-            ./gradlew :csv-python:testPython${{ matrix.python-version }}
+            ./gradlew :csv-python:testPython${PYTHON_VERSION/./_} --continue
           should-run-codecov: false
+      - name: Mark successful test cache
+        if: steps.cache-test-result.outputs.cache-hit != 'true' && steps.run-tests.conclusion == 'success'
+        run: |
+          mkdir -p .github/.cache/test-extensively-python
+          echo "ok" > .github/.cache/test-extensively-python/success
+      - name: Save Gradle test cache
+        if: steps.cache-test-result.outputs.cache-hit != 'true' && steps.run-tests.conclusion == 'success'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: .github/.cache/test-extensively-python
+          key: ${{ steps.cache-test-result.outputs.cache-primary-key }}
+      - name: Skip tests on cache hit
+        if: steps.cache-test-result.outputs.cache-hit == 'true'
+        run: echo "Inputs unchanged since last successful run, skipping tests."
+      - name: CI summary
+        if: always()
+        uses: ./.github/actions/ci-summary
+        with:
+          kind: matrix
+          name: ci-digest-python-${{ matrix.os }}-${{ matrix.python-version }}
+          dims: runtime=python os=${{ matrix.os }} version=${{ matrix.python-version }}
+          outcome: ${{ steps.run-tests.outcome }}
+          check-run: ${{ inputs.summary-check-run }}
