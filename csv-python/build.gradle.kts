@@ -5,6 +5,8 @@ plugins {
 }
 
 python {
+    // each tested via testPython<X_Y>, in its own virtual environment
+    testedPythonVersions("3.10", "3.11", "3.12", "3.13", "3.14")
     pyproject {
         name = "jcsv"
         description = "Pythonic wrapper of a Kotlin/JVM CSV library, via JPype"
