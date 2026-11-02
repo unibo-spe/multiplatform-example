@@ -1,13 +1,15 @@
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.net.URI
 
 object NodeVersions {
     private const val NODE_DIST_URL = "https://nodejs.org/dist"
 
+    // only release directories (e.g. "v24.1.0/"), not pre-releases (e.g. "v27.0.0-alpha.0.0.0/")
+    private val RELEASE_DIR_REGEX = "\"v(\\d+\\.\\d+\\.\\d+)/\"".toRegex()
+
     private val VERSIONS: Set<StableVersion> by lazy {
-        val reader = BufferedReader(InputStreamReader(URI(NODE_DIST_URL).toURL().openStream()))
-        StableVersion.parseAll(reader).toSet()
+        RELEASE_DIR_REGEX.findAll(URI(NODE_DIST_URL).toURL().readText())
+            .map { StableVersion.parse(it.groupValues[1]) }
+            .toSet()
     }
 
     private val VERSIONS_CACHE = mutableMapOf<String, String>()
