@@ -18,11 +18,11 @@ python {
 }
 
 // Copies the fat JAR of :csv-core into the Python package, as jcsv/jvm/csv.jar
-val createCoreJar by tasks.registering(Copy::class) {
+val createCoreJar = tasks.register<Copy>("createCoreJar") {
     group = "Python"
-    val shadowJar by project(":csv-core").tasks.getting(Jar::class)
+    val shadowJar = project(":csv-core").tasks.named<Jar>("shadowJar")
     dependsOn(shadowJar)
-    from(shadowJar.archiveFile) {
+    from(shadowJar.flatMap { it.archiveFile }) {
         rename(".*?\\.jar", "csv.jar")
     }
     into(projectDir.resolve("jcsv/jvm"))

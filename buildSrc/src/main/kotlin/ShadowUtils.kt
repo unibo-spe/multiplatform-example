@@ -6,7 +6,6 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.kotlin.dsl.attributes
 import org.gradle.kotlin.dsl.extra
-import org.gradle.kotlin.dsl.provideDelegate
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import java.io.File
 
@@ -16,10 +15,8 @@ fun String.toPascalCase(separators: Set<Char> = setOf('_', '-')) =
     }
 
 private val Project.supportedPlatforms: List<String>
-    get() {
-        val supportedPlatforms: List<String>? by extra
-        return supportedPlatforms ?: emptyList()
-    }
+    @Suppress("UNCHECKED_CAST")
+    get() = extra.properties["supportedPlatforms"] as List<String>? ?: emptyList()
 
 fun Project.shadowJar(
     entryPoint: String? = null,
