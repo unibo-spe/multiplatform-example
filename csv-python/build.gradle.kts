@@ -1,7 +1,7 @@
 import io.github.gciatto.python.uv.tasks.PoeTask
 
 plugins {
-    id("io.github.gciatto.python-uv")
+    alias(libs.plugins.python.uv)
 }
 
 python {

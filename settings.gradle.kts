@@ -5,8 +5,6 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 pluginManagement {
-    // Gradle plugin for Python projects, operating via uv (git submodule, not yet on the Plugin Portal)
-    includeBuild("gradle-python-uv")
     repositories {
         gradlePluginPortal()
         google()

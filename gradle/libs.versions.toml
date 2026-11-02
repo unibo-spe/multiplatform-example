@@ -7,6 +7,7 @@ shadowJar = "9.6.1"
 [plugins]
 gitSemVer = { id = "org.danilopianini.git-sensitive-semantic-versioning-gradle-plugin", version = "7.3.0" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+python-uv = { id = "io.github.gciatto.python-uv", version = "1.0.0" }
 
 [libraries]
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

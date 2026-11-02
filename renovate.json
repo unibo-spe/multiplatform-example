@@ -9,9 +9,6 @@
   ],
   "automerge": true,
   "dependencyDashboard": true,
-  "git-submodules": {
-    "enabled": true
-  },
   "includeForks": true,
   "packageRules": [
     {
