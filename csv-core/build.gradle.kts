@@ -32,6 +32,10 @@ kotlin {
         freeCompilerArgs.add("-opt-in=kotlin.js.ExperimentalJsExport")
     }
     js {
+        compilerOptions {
+            // Row and Table extend Iterable, which is not exported to JS (KT-83009: to become an error)
+            freeCompilerArgs.add("-Xwarning-level=EXPOSED_NOT_EXPORTED_SUPER_INTERFACE_WARNING:disabled")
+        }
         useEsModules()
         binaries.executable()
         nodejs()
