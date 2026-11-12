@@ -50,5 +50,7 @@ gitHooks {
     createHooks()
 }
 
+rootProject.name = "multiplatform-example" // also names the JS package: multiplatform-example-csv-core
+
 include(":csv-core")
 include(":csv-python")
