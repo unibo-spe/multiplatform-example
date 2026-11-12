@@ -18,9 +18,9 @@ A small library for parsing and formatting CSV files, which shows the two approa
 │       ├── commonMain/          # platform-agnostic code: entities, parsing, formatting, expect declarations
 │       ├── commonTest/          # platform-agnostic tests, run on every platform
 │       ├── jvmMain/             # JVM-specific code (file reading via java.io)
-│       ├── jvmTest/
+│       ├── jvmTest/             # ...including java/: how to use the library from Java
 │       ├── jsMain/              # JS-specific code (file reading via Node's fs module)
-│       └── jsTest/
+│       └── jsTest/              # ...including javascript/: how to use the library from plain JS (Node.js)
 ├── csv-python/                  # the jcsv Python package, wrapping the JVM build of csv-core
 │   ├── jcsv/                    # Pythonic API, Java ↔ Python conversions, JVM bootstrap
 │   ├── tests/                   # pytest tests of the Pythonic API
@@ -46,6 +46,7 @@ All operations go through the Gradle wrapper:
 |---|---|
 | `./gradlew check` | Runs all checks: Kotlin tests on JVM and JS, Python tests and static checks (ruff) |
 | `./gradlew jvmTest` / `jsTest` | Runs the Kotlin tests on one platform only |
+| `./gradlew jsUsageTest` | Runs only the plain-JS usage examples (`node --test`), against the compiled library (also part of `jsTest`) |
 | `./gradlew jsTest -PnodeVersion=22` | Runs the JS tests on another Node.js version (e.g. `22`, `latest-24`, `latest`) |
 | `./gradlew :csv-python:test` | Runs the Python tests (pytest), with the default Python version |
 | `./gradlew :csv-python:testAllPythonVersions` | Runs the Python tests on every supported Python version (3.10–3.14) |

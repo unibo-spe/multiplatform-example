@@ -69,3 +69,25 @@ tasks.register("classes") {
 }
 
 shadowJar()
+
+// Copies the plain-JS usage examples next to the npm workspace of the compiled library, so that they can import it by name
+val prepareJsUsageTest = tasks.register<Sync>("prepareJsUsageTest") {
+    dependsOn("jsProductionExecutableCompileSync", ":kotlinNpmInstall")
+    from("src/jsTest/javascript")
+    into(rootProject.layout.buildDirectory.dir("js/usage"))
+}
+
+// Runs the plain-JS usage examples with Node's built-in test runner (also as part of jsTest)
+val jsUsageTest = tasks.register<Exec>("jsUsageTest") {
+    group = "verification"
+    description = "Runs the plain-JavaScript usage examples in src/jsTest/javascript."
+    dependsOn(prepareJsUsageTest, "kotlinNodeJsSetup")
+    val report = layout.buildDirectory.file("test-results/jsUsageTest/TEST-jsUsageTest.xml")
+    workingDir(prepareJsUsageTest.map { it.destinationDir })
+    executable(project.the<NodeJsEnvSpec>().executable.get())
+    args("--test", "--test-reporter=spec", "--test-reporter-destination=stdout")
+    args("--test-reporter=junit", "--test-reporter-destination=${report.get().asFile}")
+    doFirst { report.get().asFile.parentFile.mkdirs() }
+}
+
+tasks.named("jsTest") { dependsOn(jsUsageTest) }
