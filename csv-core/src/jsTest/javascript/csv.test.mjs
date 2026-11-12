@@ -5,7 +5,7 @@
 // - the Iterable/Sequence overloads, and the default implementations of Parser / Formatter are not;
 // - varargs are arrays, Chars are numbers (UTF-16 codes), default arguments can be omitted;
 // - Kotlin Lists are KtList objects: use asJsReadonlyArrayView() to get a (read-only) JS array;
-// - Kotlin Iterables are not JS iterables: no for...of on rows or tables;
+// - Kotlin Iterables are not JS iterables: use toArray() (from jsMain) to iterate over rows, tables, etc.;
 // - Kotlin exceptions are JS Errors, whose name is the Kotlin exception class.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
@@ -25,6 +25,7 @@ import {
   recordOf,
   table as tableOfRecords, // Kotlin's tableOf(Header, vararg Record), renamed via @JsName("table")
   tableOf,
+  toArray,
 } from 'multiplatform-example-csv-core'
 
 const char = (c) => c.charCodeAt(0)
@@ -53,6 +54,7 @@ test('constants', () => {
 test('row', () => {
   assert.equal(alice.size, 2)
   assert.equal(alice.getByIndex(0), 'Alice')
+  assert.deepEqual(toArray(alice), ['Alice', '30'])
 })
 
 test('header', () => {
@@ -77,9 +79,9 @@ test('table', () => {
   assert.equal(table.size, 3) // header included
   assert.ok(table.get(0).equals(header))
   assert.ok(table.get(2).equals(bob))
-  // no for...of: iterate by index
+  // for...of works on the array returned by toArray
   const names = []
-  for (let i = 1; i < table.size; i++) names.push(table.get(i).getByName('name'))
+  for (const row of toArray(table).slice(1)) names.push(row.getByName('name'))
   assert.deepEqual(names, ['Alice', 'Bob'])
 })
 
