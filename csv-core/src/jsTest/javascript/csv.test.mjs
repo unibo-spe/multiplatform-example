@@ -1,8 +1,7 @@
 // Shows how the JS build of csv-core looks like from plain JavaScript (run via `./gradlew jsUsageTest`).
 // Rules of thumb:
-// - only @JsExport-ed declarations are visible: the vararg factories, formatAsCSV, parseAsCSV, parseCsvFile,
-//   and the members of the exported interfaces (named after their @JsName, e.g. getByIndex / getByName);
-// - the Iterable/Sequence overloads, and the default implementations of Parser / Formatter are not;
+// - only @JsExport-ed declarations are visible: members of exported interfaces are named after their @JsName
+//   (e.g. getByIndex / getByName), and the Iterable / Sequence overloads are not exported (varargs cover them);
 // - varargs are arrays, Chars are numbers (UTF-16 codes), default arguments can be omitted;
 // - Kotlin Lists are KtList objects: use asJsReadonlyArrayView() to get a (read-only) JS array;
 // - Kotlin Iterables are not JS iterables: use toArray() (from jsMain) to iterate over rows, tables, etc.;
@@ -19,9 +18,11 @@ import {
   DEFAULT_DELIMITER,
   DEFAULT_SEPARATOR,
   formatAsCSV,
+  formatterOf,
   headerOf,
   parseAsCSV,
   parseCsvFile,
+  parserOf,
   recordOf,
   table as tableOfRecords, // Kotlin's tableOf(Header, vararg Record), renamed via @JsName("table")
   tableOf,
@@ -115,4 +116,17 @@ test('configuration', () => {
   assert.deepEqual(array(config.getFields('a; "b; c"')), ['a', 'b; c'])
   assert.ok(config.isHeader('# x; y'))
   assert.deepEqual(array(config.getColumnNames('# x; y')), ['x', 'y'])
+})
+
+test('parser and formatter', () => {
+  const config = new Configuration(char(';'), char('"'), char('#'))
+  const parser = parserOf('# name; age\nAlice; 30\nBob; 25', config)
+  assert.equal(parser.source, '# name; age\nAlice; 30\nBob; 25')
+  assert.ok(parser.configuration.equals(config))
+  assert.ok(tableOf(toArray(parser.parse())).equals(table))
+
+  const formatter = formatterOf(table, config)
+  assert.ok(formatter.configuration.equals(config))
+  assert.ok(formatter.source.equals(table))
+  assert.deepEqual(toArray(formatter.format()), ['# "name"; "age"', '"Alice"; "30"', '"Bob"; "25"'])
 })

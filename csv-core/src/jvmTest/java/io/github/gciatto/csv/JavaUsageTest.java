@@ -1,5 +1,6 @@
 package io.github.gciatto.csv;
 
+import kotlin.collections.CollectionsKt;
 import kotlin.sequences.SequencesKt;
 import org.junit.Test;
 
@@ -147,6 +148,22 @@ public class JavaUsageTest {
         assertEquals(List.of("a", "b; c"), config.getFields("a; \"b; c\""));
         assertTrue(config.isHeader("# x; y"));
         assertEquals(List.of("x", "y"), config.getColumnNames("# x; y"));
+    }
+
+    @Test
+    public void defaultParserAndFormatter() {
+        Configuration config = new Configuration(';', '"', '#');
+        Parser parser = Csv.parserOf("# name; age\nAlice; 30\nBob; 25", config);
+        assertEquals(config, parser.getConfiguration());
+        assertEquals(table, Csv.tableOf(parser.parse()));
+
+        Formatter formatter = Csv.formatterOf(table, config);
+        assertEquals(table, formatter.getSource());
+        // format() returns a lazy Iterable (not a List): CollectionsKt.toList converts it
+        assertEquals(
+            List.of("# \"name\"; \"age\"", "\"Alice\"; \"30\"", "\"Bob\"; \"25\""),
+            CollectionsKt.toList(formatter.format())
+        );
     }
 
     /** Java classes can implement the Kotlin interfaces too: a parser reading a header line, then one record per line. */

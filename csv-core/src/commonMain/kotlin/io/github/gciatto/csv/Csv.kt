@@ -60,6 +60,14 @@ fun tableOf(vararg rows: Row): Table = tableOf(rows.asIterable())
 
 fun tableOf(rows: Sequence<Row>): Table = tableOf(rows.asIterable())
 
+/** Creates the default [Parser] for the given CSV string. */
+@JsExport
+fun parserOf(source: String, configuration: Configuration): Parser = StringParser(source, configuration)
+
+/** Creates the default [Formatter] for the given rows (e.g. a [Table]). */
+@JsExport
+fun formatterOf(source: Iterable<Row>, configuration: Configuration): Formatter = DefaultFormatter(source, configuration)
+
 @JsExport
 fun Iterable<Row>.formatAsCSV(
     separator: Char = DEFAULT_SEPARATOR,
