@@ -20,6 +20,11 @@
       "semanticCommitType": "ci"
     },
     {
+      "description": "JPype1 1.7.1 has no wheels for Python 3.15 yet: raise when it does",
+      "matchFileNames": ["csv-python/.python-version"],
+      "allowedVersions": "<3.15"
+    },
+    {
       "matchPackageNames": ["net.sourceforge.plantuml:plantuml"],
       "allowedVersions": "/^1\\./"
     }
