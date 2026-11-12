@@ -1,6 +1,11 @@
+@file:Suppress("NON_EXPORTABLE_TYPE")
+
 package io.github.gciatto.csv
 
+import kotlin.js.JsExport
+
 /** Set of characters used to parse / represent CSV files. */
+@JsExport
 data class Configuration(val separator: Char, val delimiter: Char, val comment: Char) {
     private val commentPattern: Regex by lazy {
         """^\s*$comment\s*(.*)""".toRegex()

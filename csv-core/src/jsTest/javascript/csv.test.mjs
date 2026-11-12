@@ -2,7 +2,7 @@
 // Rules of thumb:
 // - only @JsExport-ed declarations are visible: the vararg factories, formatAsCSV, parseAsCSV, parseCsvFile,
 //   and the members of the exported interfaces (named after their @JsName, e.g. getByIndex / getByName);
-// - Configuration, the Iterable/Sequence overloads, and the default implementations of Parser / Formatter are not;
+// - the Iterable/Sequence overloads, and the default implementations of Parser / Formatter are not;
 // - varargs are arrays, Chars are numbers (UTF-16 codes), default arguments can be omitted;
 // - Kotlin Lists are KtList objects: use asJsReadonlyArrayView() to get a (read-only) JS array;
 // - Kotlin Iterables are not JS iterables: no for...of on rows or tables;
@@ -14,6 +14,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
   anonymousHeader,
+  Configuration,
+  DEFAULT_COMMENT,
+  DEFAULT_DELIMITER,
+  DEFAULT_SEPARATOR,
   formatAsCSV,
   headerOf,
   parseAsCSV,
@@ -37,6 +41,13 @@ test('factories', () => {
   assert.ok(headerOf(['0', '1', '2']).equals(anonymousHeader(3)))
   assert.equal(tableOf([alice]).header.toString(), 'Header("0", "1")')
   assert.throws(() => recordOf(header, ['Charlie']), { name: 'IllegalArgumentException' })
+})
+
+test('constants', () => {
+  // top-level properties are exported as objects with a get() method
+  assert.equal(DEFAULT_SEPARATOR.get(), char(','))
+  assert.equal(DEFAULT_DELIMITER.get(), char('"'))
+  assert.equal(DEFAULT_COMMENT.get(), char('#'))
 })
 
 test('row', () => {
@@ -86,4 +97,20 @@ test('parse file', () => {
   const path = join(mkdtempSync(join(tmpdir(), 'csv-')), 'people.csv')
   writeFileSync(path, formatAsCSV(table))
   assert.ok(parseCsvFile(path).equals(table))
+})
+
+test('configuration', () => {
+  // a data class: constructor, properties, equals, copy (no componentN in JS)
+  const config = new Configuration(char(';'), char('"'), char('#'))
+  assert.equal(config.separator, char(';'))
+  assert.ok(config.equals(new Configuration(char(';'), char('"'), char('#'))))
+  assert.equal(config.copy(char(',')).separator, char(','))
+
+  assert.ok(config.isComment('# a comment'))
+  assert.equal(config.getComment('# a comment'), 'a comment')
+  assert.equal(config.getComment('not a comment'), null) // String? is string | null
+  assert.ok(config.isRecord('a; b'))
+  assert.deepEqual(array(config.getFields('a; "b; c"')), ['a', 'b; c'])
+  assert.ok(config.isHeader('# x; y'))
+  assert.deepEqual(array(config.getColumnNames('# x; y')), ['x', 'y'])
 })

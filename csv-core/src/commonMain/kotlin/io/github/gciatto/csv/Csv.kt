@@ -12,8 +12,11 @@ import kotlin.js.JsExport
 import kotlin.js.JsName
 import kotlin.jvm.JvmName
 
+@JsExport
 const val DEFAULT_SEPARATOR = ','
+@JsExport
 const val DEFAULT_DELIMITER = '"'
+@JsExport
 const val DEFAULT_COMMENT = '#'
 
 fun headerOf(columns: Iterable<String>): Header = DefaultHeader(columns)
