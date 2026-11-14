@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Checkout
         uses: DanySK/action-checkout@0.2.31
-      - uses: DanySK/build-check-deploy-gradle-action@4.0.51
+      - uses: DanySK/build-check-deploy-gradle-action@4.0.52
         with:
           retries-on-failure: '2'
           # Kotlin (JVM, JS) and Python (tests, ruff, pyproject.toml in sync) checks
